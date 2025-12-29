@@ -1,0 +1,25 @@
+# Variables - update these with your values
+$spObjectId = "ba243710-6957-4a34-b7a7-0841fd3687f2"   # Service Principal Object ID
+$subscriptionId = "3f51e757-9bd9-42e5-a6b6-e290cdd71dac"
+$resourceGroup = "rg-tf-backend"
+$storageAccount = "tfterraformstate001"
+
+# Scope for Storage Account
+$storageScope = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.Storage/storageAccounts/$storageAccount"
+
+# Scope for Resource Group
+$rgScope = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroup"
+
+Write-Host "Assigning Storage Blob Data Contributor role to the SP on the storage account..."
+az role assignment create `
+  --assignee $spObjectId `
+  --role "Storage Blob Data Contributor" `
+  --scope $storageScope
+
+Write-Host "Assigning Reader role to the SP on the resource group..."
+az role assignment create `
+  --assignee $spObjectId `
+  --role "Reader" `
+  --scope $rgScope
+
+Write-Host "Role assignments completed. Please wait a few minutes for propagation before rerunning the pipeline."
