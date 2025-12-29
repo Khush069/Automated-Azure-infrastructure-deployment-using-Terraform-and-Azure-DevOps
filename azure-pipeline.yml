@@ -1,0 +1,54 @@
+# ------------------------------
+# Azure DevOps Pipeline for Terraform
+# ------------------------------
+
+trigger:
+  branches:
+    include:
+      - main   # Trigger pipeline on main branch
+
+pr:
+  branches:
+    include:
+      - main   # Trigger on PRs to main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: TerraformVariables  # Linking variable group created in Library
+
+stages:
+  - stage: Terraform_Deploy
+    displayName: 'Terraform Deploy Stage'
+    jobs:
+      - job: Terraform
+        displayName: 'Terraform Job'
+        steps:
+
+          # Install Terraform
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '1.5.7'   # Change if needed
+
+          # Initialize Terraform with backend
+          - script: |
+              terraform init \
+                -backend-config="storage_account_name=$(storage_account_name)" \
+                -backend-config="container_name=$(container_name)" \
+                -backend-config="key=$(terraform_backend_key)" \
+                -backend-config="resource_group_name=$(resource_group)"
+            displayName: 'Terraform Init'
+
+          # Validate Terraform files
+          - script: terraform validate
+            displayName: 'Terraform Validate'
+
+          # Terraform Plan
+          - script: terraform plan -out=tfplan
+            displayName: 'Terraform Plan'
+
+          # Terraform Apply
+          - script: terraform apply -auto-approve tfplan
+            displayName: 'Terraform Apply'
